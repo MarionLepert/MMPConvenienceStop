@@ -1,0 +1,131 @@
+#####################################################################
+# Default config for Mobile Manipulation Platforms
+# Defines Redis namespaces and keys for master and each robot
+#
+# Stanford IPRL
+#
+# Created: August 2019
+#####################################################################
+
+####################
+# master parameters #
+####################
+master:
+  ip: "172.24.69.149"
+
+####################
+# bot1 parameters #
+####################
+bot1:
+  ip: "172.24.69.149"
+
+####################
+# bot2 parameters #
+####################
+bot2:
+  ip: "172.24.69.150"
+
+####################
+# bot3 parameters #
+####################
+bot3:
+  ip: "172.24.69.151"
+
+####################
+# Redis parameters #
+####################
+
+redis:
+  port: 6379
+ 
+  # Redis keys
+  keys:
+    sim_prefix:     "sim::"
+    mmp_prefix:     "mmp::"
+    master_prefix:  "master::"
+    bot1_prefix:    "bot1::"
+    bot2_prefix:    "bot2::"
+    bot3_prefix:    "bot3::"
+    vehicle_prefix: "veh::"
+    arm_prefix:     "arm::"
+
+    # Keys written by robots
+    q:             "sensor::q"
+    dq:            "sensor::dq"
+    x:             "sensor::x"
+    dx:            "sensor::dx"
+    x_ori:         "sensor::x_ori"
+    tau:           "sensor::tau"
+    current:       "sensor::current"
+
+    # Keys sent to robots
+    q_des:         "control::q"
+    dq_des:        "control::dq"
+    x_des:         "control::x"
+    xd_des:        "control::xd"
+    tau_des:       "control::tau"
+    f_des:         "control::f"
+    current_des:   "control::current"
+
+    # Gains 
+    kp:        "control::kp"
+    kv:        "control::kv"
+
+    # Keys set by master and read by bots
+    cstop:                "cstop"
+    emergency_shutdown:   "emergency_shutdown"
+    controller_running:   "controller_running"
+    communication:        "comm"
+
+
+
+#######################
+# Control parameters #
+#######################
+
+control:
+
+  # Torque controller parameters
+  torque_controller:
+
+    # Timeout for torque command updates [ms]
+    tau_command_timeout: 200
+
+#     # Compensate for gravity
+#     compensate_gravity: false
+
+#     # Use rate limiting for commanded torques
+#     limit_rate: false
+
+  # Joint space controller parameters
+  joint_space_controller:
+
+        # Gains 
+        kp:       "control::joint::kp"
+        kv:       "control::joint::kv"
+
+  # Position controller parameters
+  pos_controller:
+
+        # Gains 
+        kp:       "control::pos::kp"
+        kv:       "control::pos::kv"
+
+  # Orientation controller parameters
+  ori_controller:
+
+        # Gains 
+        kp:       "control::ori::kp"
+        kv:       "control::ori::kv"
+
+#   # Cartesian space controller parameters
+#   cartesian_space_controller: 
+
+
+button: 
+
+    # Timeout for blocking read of button stream [s]
+    read_timeout_s: 0
+    
+    # Timeout for blocking read of button stream [us]
+    read_timeout_us: 1000

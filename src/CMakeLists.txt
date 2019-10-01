@@ -1,0 +1,8 @@
+
+
+set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${BUTTON_MASTER_BINARY_DIR})
+
+ADD_EXECUTABLE (master main.cc args.cc RT_utils.c)
+
+
+
