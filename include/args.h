@@ -27,6 +27,7 @@ namespace mmp_driver {
 	    std::string controller_running = "controller_running"; 
 	    std::string emergency_shutdown = "emergency_shutdown"; 
 	    std::string cstop              = "cstop"; 
+	    std::string cstop_running      = "cstop_running";
 	    std::string comm               = "comm"; 
 
 	    // Sensor keys 

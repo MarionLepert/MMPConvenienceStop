@@ -31,8 +31,7 @@ using std::cerr;
 /*-----------------------static function declarations----------------------------*/
 static void sig_handler(int); 
 static int readButtonEvent(int fd, struct js_event *event);
-static Eigen::VectorXd getRedisKey(std::string key);
-static double getRedisKeyDouble(std::string key);  
+static int getRedisKey(std::string key);  
 static int clearButtonStream(int fd, struct js_event *event);
 static void initializeRedis(); 
 static void initializeConvenienceStop(); 
@@ -48,6 +47,7 @@ static ctrl_utils::RedisClient redis_client;
 
 static std::string EMERGENCY_SHUTDOWN_KEY; 
 static std::string C_STOP_KEY; 
+static std::string C_STOP_RUNNING_KEY; 
 
 /* Convenience stop */
 static int js; 
@@ -85,12 +85,15 @@ int main(int argc, char **argv)
       cerr << "ERROR: Cannot read joystick" << endl; 
     }
 
-    if (getRedisKeyDouble(EMERGENCY_SHUTDOWN_KEY)) {
+    if (getRedisKey(EMERGENCY_SHUTDOWN_KEY)) {
       cerr << "EMERGENCY SHUTDOWN" << endl; 
       runloop = false; 
     }
 
   }
+
+  redis_client.set(C_STOP_RUNNING_KEY, 0); 
+  redis_client.commit(); 
 
   double end_time = timer.time(); 
   double sim_time = end_time - start_time; 
@@ -116,12 +119,14 @@ static void sig_handler(int)
 {
   runloop = false; 
 
+  redis_client.set(C_STOP_RUNNING_KEY, 0); 
   redis_client.set(EMERGENCY_SHUTDOWN_KEY, 0); 
   redis_client.set(C_STOP_KEY, 0);
   redis_client.commit(); 
   cout << "SIGINT received in master" << endl;
 
 }
+
 
 
 /* Redis initialization */
@@ -142,6 +147,7 @@ static void initializeRedis()
     // Define redis keys 
     EMERGENCY_SHUTDOWN_KEY = args.mmp_prefix + args.emergency_shutdown; 
     C_STOP_KEY             = args.mmp_prefix + args.cstop;
+    C_STOP_RUNNING_KEY     = args.mmp_prefix + args.cstop_running; 
 
     redis_client.set(C_STOP_KEY, 0); 
     redis_client.set(EMERGENCY_SHUTDOWN_KEY, 0); 
@@ -166,6 +172,9 @@ static void initializeConvenienceStop()
     if (clearButtonStream(js, &event)) {
       runloop = false; 
     }
+
+    redis_client.set(C_STOP_RUNNING_KEY, 1); 
+    redis_client.commit(); 
 
     cout << "Convenience stop active" << endl;
 }
@@ -244,24 +253,13 @@ static int readButtonEvent(int fd, struct js_event *event)
 }
 
 
-/*
- * Return value of redis key corresponding to vector 
- */
-static Eigen::VectorXd getRedisKey(std::string key)
-{
-  std::future<Eigen::VectorXd> future_value = redis_client.get<Eigen::VectorXd>(key);
-  redis_client.commit();
-  Eigen::VectorXd value = future_value.get(); 
-  return value; 
-}
 
-
-/* Return value of redis key corresponding to double */ 
-static double getRedisKeyDouble(std::string key)
+/* Return value of redis key corresponding to int */ 
+static int getRedisKey(std::string key)
 {
-  std::future<double> future_value = redis_client.get<double>(key);
+  std::future<int> future_value = redis_client.get<int>(key);
   redis_client.commit();
-  double value = future_value.get(); 
+  int value = future_value.get(); 
   return value; 
 }
 

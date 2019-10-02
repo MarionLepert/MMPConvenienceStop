@@ -83,6 +83,7 @@ Args ParseYaml(const char* filename) {
     args.controller_running   = yaml["redis"]["keys"]["controller_running"].as<std::string>();
     args.emergency_shutdown   = yaml["redis"]["keys"]["emergency_shutdown"].as<std::string>();
     args.cstop                = yaml["redis"]["keys"]["cstop"].as<std::string>();
+    args.cstop_running        = yaml["redis"]["keys"]["cstop_running"].as<std::string>();
     args.comm                 = yaml["redis"]["keys"]["communication"].as<std::string>();
 
     args.sim_prefix           = yaml["redis"]["keys"]["sim_prefix"].as<std::string>();

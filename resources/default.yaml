@@ -75,6 +75,7 @@ redis:
     cstop:                "cstop"
     emergency_shutdown:   "emergency_shutdown"
     controller_running:   "controller_running"
+    cstop_running:        "cstop_running"
     communication:        "comm"
 
 
