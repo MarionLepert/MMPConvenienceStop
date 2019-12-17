@@ -83,6 +83,9 @@ int main(int argc, char **argv)
 
     if (readButtonEvent(js, &event) != 0) {
       cerr << "ERROR: Cannot read joystick" << endl; 
+      redis_client.set(C_STOP_KEY, 1);
+      redis_client.commit(); 
+      runloop = false; 
     }
 
     if (getRedisKey(EMERGENCY_SHUTDOWN_KEY)) {
@@ -254,7 +257,7 @@ static int readButtonEvent(int fd, struct js_event *event)
 
 
 
-/* Return value of redis key corresponding to int */ 
+/* Return value of redis key as an int */ 
 static int getRedisKey(std::string key)
 {
   std::future<int> future_value = redis_client.get<int>(key);
