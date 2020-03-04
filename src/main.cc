@@ -33,8 +33,9 @@ static void sig_handler(int);
 static int readButtonEvent(int fd, struct js_event *event);
 static int getRedisKey(std::string key);  
 static int clearButtonStream(int fd, struct js_event *event);
-static void initializeRedis(); 
+static void initializeRedis(int active_comp); 
 static void initializeConvenienceStop(); 
+static int readCommandLineArguments(int argc, char **argv);
 /*-----------------------static variable declarations----------------------------*/
 const char *device;
 static struct js_event event;  
@@ -55,7 +56,6 @@ static bool joystick_open = false;
 
 static bool runloop = true; 
 
-
 /*------------------------------------public functions---------------------------------*/
 
 int main(int argc, char **argv)
@@ -67,8 +67,11 @@ int main(int argc, char **argv)
   // Parse args 
   args = mmp_driver::ParseArgs(argc, argv); 
 
+  /**************************** Read Command Line Arguments *******************************/
+  int active_comp = readCommandLineArguments(argc, argv); 
+
   /******************************* Redis initialization **********************************/
-  initializeRedis(); 
+  initializeRedis(active_comp); 
 
   /***************************** Initialize convenience stop ******************************/
    
@@ -114,7 +117,6 @@ int main(int argc, char **argv)
 }
 
 
-
 /**
 * SIGINT handler
 **/
@@ -131,12 +133,27 @@ static void sig_handler(int)
 }
 
 
-
 /* Redis initialization */
-static void initializeRedis()
+static void initializeRedis(int active_comp)
 {
+    std::string ip_address; 
+    switch (active_comp)
+    {
+      case 0:
+        ip_address  = args.ip_master; 
+        break; 
+      case 1: 
+        ip_address  = args.ip_bot1; 
+        break; 
+      case 2: 
+        ip_address  = args.ip_bot2; 
+        break; 
+      case 3: 
+        ip_address  = args.ip_bot3; 
+        break; 
+    }
     // Connect to Redis
-    redis_client.connect(args.ip_master, args.port_redis);
+    redis_client.connect(ip_address, args.port_redis);
 
     // Redis server authentication 
     redis_client.auth("bohg", [](const cpp_redis::reply& reply) {
@@ -265,5 +282,33 @@ static int getRedisKey(std::string key)
   int value = future_value.get(); 
   return value; 
 }
+
+
+/* Read command line input arguments to get number of computer this program is running on */ 
+static int readCommandLineArguments(int argc, char **argv)
+{
+    if (argc != 2) {
+    cout << "Usage: sudo ./master <BOT_NUM>" << endl; 
+    exit(0); 
+  }
+  
+  std::istringstream ss(argv[1]); 
+  int active_comp; 
+  try {
+    if (!(ss >> active_comp)) {
+      throw std::runtime_error(std::string("Invalid Number: ") + std::string(argv[1])); 
+    } else if (!ss.eof()) {
+      throw std::runtime_error(std::string("Trailing characters after number")); 
+    } else if ((active_comp < 0) || (active_comp > 3)) {
+      throw std::runtime_error(std::string("Input number out of range: ") + std::string(argv[1]));
+    }
+  } catch(const std::runtime_error& e) {
+    cerr << e.what() << endl; 
+    exit(0); 
+  }
+
+  return active_comp; 
+}
+
 
 
